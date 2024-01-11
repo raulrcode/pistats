@@ -22,5 +22,4 @@ chmod +x pistats.sh
 ```
 ./pistats.sh
 ```
-
-![example](https://github.com/raulrcode/pistats/assets/118807552/9818557e-b1f4-44ca-a357-ca7f9fee4250)
+![stats](https://github.com/raulrcode/pistats/assets/118807552/4659b259-f94e-4e0a-b90f-37ca74c3c370)
