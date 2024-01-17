@@ -10,10 +10,10 @@ git clone https://github.com/raulrcode/pistats.git
 
 2. **Navigate to the script:**
 ```
-cd pistats
+cd pistats/
 ```
 
-3. **Make the script Executable:**
+3. **Make the script executable:**
 ```
 chmod +x pistats.sh
 ```
@@ -22,4 +22,4 @@ chmod +x pistats.sh
 ```
 ./pistats.sh
 ```
-![stats](https://github.com/raulrcode/pistats/assets/118807552/4659b259-f94e-4e0a-b90f-37ca74c3c370)
+![pistats](https://github.com/raulrcode/pistats/assets/118807552/50b10e06-5abe-4624-9dce-8a4ba12251f9)
