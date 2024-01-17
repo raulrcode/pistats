@@ -4,7 +4,14 @@
 dateFormat="%d.%m.%Y"
 timeFormat="%H:%M:%S"
 uplinkIpAddress="192.168.1.1"
-cpuUsage=$(top -bn2 | grep '%Cpu' | tail -1 | grep -P '(....|...) id,' | awk '{printf "%.2f%%", 100-($8/4)}')
+# cpuUsage=$(top -bn2 | grep '%Cpu' | tail -1 | grep -P '(....|...) id,' | awk '{printf "%.2f%%", 100-($8/4)}')
+# cpuThreadUsage="$(ps -eo psr,%cpu | awk '$1 ~ /^[0-9]+$/ {cpu[$1]+=$2} END {for (i in cpu) printf "CPU%d: %.2f%% |", i, cpu[i]}')"
+#                   ps -eo psr,%cpu | awk '$1 ~ /^[0-9]+$/ {cpu[$1]+=$2} END {for (i in cpu) printf "CPU%d: %.2f%% |", i, cpu[i]}'
+cpu_usage_command='ps -eo psr,%cpu | awk '\''$1 ~ /^[0-9]+$/ {cpu[$1]+=$2; count[$1]++} END {total=0; printf "CPU Load: "; for (i in cpu) {total += cpu[i]} printf "%.2f%%\n", total / length(cpu); for (i in cpu) {printf "CPU%d: %.2f%% |", i, cpu[i] / count[i]}}'\'''
+cpuCores=$(nproc)
+#eval $cpu_usage_command
+
+hostName="$(hostname -f)"
 dateTime=$(date +"$dateFormat | $timeFormat")
 cpuFreq=$(vcgencmd measure_clock arm)
 cpuTemp=$(vcgencmd measure_temp | sed 's/temp=/Temp: /')
@@ -30,11 +37,15 @@ check_uplink() {
     fi
 }
 check_uplink
+eval $cpu_usage_command
 
 # Print the stats
 cat <<EOF
+Hostname: $hostName
 Date: $dateTime
-CPU: $cpuGhz    | Load: $cpuUsage | $cpuTemp
+CPU: $cpuGhz    | Cores: $cpuCores | $cpuTemp
+CPU Load: $(eval $cpu_usage_command)
+# $cpuThreadUsage
 RAM: Used $usedRam MB | Total $totalRam MB
 Wi-Fi Level: $wifiQuality% | $uplinkStatus
 EOF
