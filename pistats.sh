@@ -15,71 +15,41 @@ get_ram_usage() {
 }
 
 get_cpu_usage() {
-    local model=$1
-
-    if [ -n "$(echo "$model" | grep -i "Raspberry Pi 4\|Raspberry Pi 5")" ]; then
-        cpuUsageData=$(ps -eo psr,%cpu | awk '
-            $1 ~ /^[0-9]+$/ {
-                cpu[$1] += $2
-                count[$1]++
-            }
-            END {
-                total = 0
-                for (i in cpu) {
-                    total += cpu[i]
-                    printf "CPU%d: %.2f%% | ", i, cpu[i]
-                }
-                printf "\n%.2f%%", total / length(cpu)
-            }')
-    elif [ -n "$(echo "$model" | grep -i "Raspberry Pi 3\|Raspberry Pi Zero")" ]; then
-        cpuUsageData=$(ps -eo psr,%cpu | awk '
-            $1 ~ /^[0-9]+$/ {
-                cpu[$1] += $2
-                count[$1]++
-            }
-            END {
-                total = 0
-                for (i in cpu) {
-                    avg = cpu[i] / count[i]
-                    total += avg
-                    printf "CPU%d: %.2f%% | ", i, avg
-                }
-                printf "\n%.2f%%", total / length(cpu)
-            }')
-    else
-        echo "Unsupported Raspberry Pi model: $model"
-        exit 1
-    fi
-
-    echo "$cpuUsageData"
+    mpstat -P ALL 1 1
 }
 
 get_cpu_stats() {
-    local model=$(grep -i "Model" /proc/cpuinfo | awk -F ': ' '{print $2}' | tr -s ' ' | sed 's/^ //')
-    cpuUsageData=$(get_cpu_usage "$model")
+    local cpuUsageData=$(get_cpu_usage)
+    model=$(grep "Model" /proc/cpuinfo | awk -F ': ' '{print $2}' | tr -s ' ' | sed 's/^ //')
     cpuFreq=$(vcgencmd measure_clock arm | awk -F= '{printf "%.2f GHz", $2 / 1000000000}')
     cpuTemp=$(vcgencmd measure_temp | sed 's/temp=//')
-    cpuAverageUsage=$(echo "$cpuUsageData" | tail -n1)
-    cpuCoreUsage=$(echo "$cpuUsageData" | sed '$d')
+    cpuAverageUsage=$(echo "$cpuUsageData" | awk '$2 == "all" && $NF != "=" {printf "%.2f%%", 100 - $NF; exit}')
+    cpuCoreUsage=$(echo "$cpuUsageData" | awk '/^Average:/{next} $2 ~ /^[0-9]+$/ && $NF != "=" {printf "CPU%s: %.2f%% | ", $2, 100 - $NF}' | awk '{print}')
+}
+
+get_storage_usage() {
+    storageUsage=$(df -h / | tail -n 1 | awk '{print "Used", $3, " | Total", $2}')
 }
 
 check_uplink() {
     if ping -c 1 -W 1 "$uplinkIpAddress" > /dev/null 2>&1; then
-        uplinkStatus="Uplink: UP"
+        uplinkStatus="ONLINE"
     else
-        uplinkStatus="Uplink: ERROR DOWN"
+        uplinkStatus="OFFLINE"
     fi
 }
 
 get_ram_usage
 get_cpu_stats
+get_storage_usage
 check_uplink
 
 cat <<EOF
-Hostname: $hostName
+Model: $model | Hostname: $hostName
 Date: $dateTime
 CPU: $cpuFreq | Load: $cpuAverageUsage | Temp: $cpuTemp
 $cpuCoreUsage
 RAM: Used $usedRam MB | Total $totalRam MB | Load: $ramLoad%
-Wi-Fi Level: $wifiQuality% | $uplinkStatus
+Storage: $storageUsage
+Wi-Fi Level: $wifiQuality% | Uplink: $uplinkStatus
 EOF
