@@ -1,5 +1,10 @@
-# pistats
+# Prerequisites
 
+Before running the script, ensure you have the following prerequisites installed on your system:
+$sudo apt-get install sysstat
+
+# pistats
+This script gathers and displays Raspberry Pi information, including system load, network status, CPU details, storage capacity, and memory usage.
 
 To run the provided shell script, follow these steps:
 
@@ -22,4 +27,4 @@ chmod +x pistats.sh
 ```
 ./pistats.sh
 ```
-![pistats](https://github.com/raulrcode/pistats/assets/118807552/50b10e06-5abe-4624-9dce-8a4ba12251f9)
+![pistats](https://github.com/raulrcode/pistats/assets/118807552/7b989e2c-1b17-4f40-9eb7-7c8f5911cdd7)
