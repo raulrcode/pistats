@@ -28,7 +28,7 @@ get_cpu_stats() {
 }
 
 get_storage_usage() {
-    storageUsage=$(df -h / | tail -n 1 | awk '{print "Used", $3, " | Total", $2}')
+    storageUsage=$(df -h / | tail -n 1 | awk '{print "Used:", $3, "| Total:", $2, "| Free:", $4}')
 }
 
 check_uplink() {
